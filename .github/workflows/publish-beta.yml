@@ -2,6 +2,7 @@ name: Publish tested Windows beta
 on:
   push:
     branches: ['release-upload/*']
+    paths: ['transfer/**']
 permissions:
   contents: write
 concurrency:
