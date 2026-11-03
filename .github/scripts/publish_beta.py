@@ -1,5 +1,5 @@
 """Release bridge: only tested installer binaries, never private app source."""
-import hashlib,json,os,re,subprocess,zipfile
+import hashlib,json,os,re,subprocess,zipfile,urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 def gh(*args):return subprocess.check_output(['gh',*args],text=True)
@@ -12,9 +12,8 @@ def main():
  require(os.environ['GITHUB_REF_NAME']=='release-upload/'+version,'Transfer branch/version mismatch')
  require(re.fullmatch(r'[0-9a-f]{40}',manifest['source_commit']),'Invalid tested source commit')
  out=ROOT/'assembled';out.mkdir(exist_ok=True);archive=out/'tested-artifact.zip'
- with archive.open('wb') as target:
-  for i,entry in enumerate(manifest['parts']):
-   require(entry['name']==f'part-{i:03d}.bin','Unexpected transfer path');p=ROOT/'transfer'/entry['name'];require(digest(p)==entry['sha256'],'Transfer part hash mismatch');target.write(p.read_bytes())
+ require(manifest['artifact_url'].startswith('https://sdmntprcentralus.oaiusercontent.com/files/'),'Unexpected artifact host')
+ urllib.request.urlretrieve(manifest['artifact_url'],archive)
  require(digest(archive)==manifest['artifact_sha256'],'Artifact hash mismatch')
  installer='RaceKick-Setup-'+version+'-Beta.exe';names={installer,'SHA256SUMS.txt','build-info.json','installed-smoke.json','upgrade-smoke.json'}
  with zipfile.ZipFile(archive) as z:
