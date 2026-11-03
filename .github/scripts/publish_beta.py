@@ -32,7 +32,7 @@ def main():
  if existing:require(existing['draft'],'Refusing to overwrite a published release')
  else:gh('release','create',tag,'--repo',repo,'--target','main','--draft','--prerelease','--title','RaceKick '+version+' Beta','--notes-file',str(notes))
  gh('release','upload',tag,str(out/installer),str(out/'SHA256SUMS.txt'),str(out/'build-info.json'),'--repo',repo,'--clobber')
- release=json.loads(gh('api','repos/'+repo+'/releases/tags/'+tag));asset=next((a for a in release['assets'] if a['name']==installer),None)
+ release=next(r for r in json.loads(gh('api','repos/'+repo+'/releases?per_page=100')) if r['tag_name']==tag);asset=next((a for a in release['assets'] if a['name']==installer),None)
  require(asset is not None and asset.get('state')=='uploaded' and asset.get('digest')=='sha256:'+checksum,'GitHub asset digest verification failed')
  gh('release','edit',tag,'--repo',repo,'--draft=false','--prerelease','--notes-file',str(notes))
  print('Published '+tag+'; installer SHA256 '+checksum)
