@@ -1,0 +1,26 @@
+name: Publish tested Windows beta
+on:
+  push:
+    branches: ['release-upload/*']
+permissions:
+  contents: write
+concurrency:
+  group: racekick-public-beta-publisher
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify tested binary artifact and publish beta
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/publish_beta.py
+      - name: Remove temporary binary transfer branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${GITHUB_REF_NAME}"
